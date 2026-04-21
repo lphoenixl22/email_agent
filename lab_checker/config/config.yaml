@@ -1,0 +1,44 @@
+# Конфигурация сервиса проверки лабораторных работ
+
+# Настройки почты
+email:
+  check_interval: 60  # интервал проверки в секундах
+  mark_as_read: true
+  download_attachments: true
+
+# Настройки LLM
+llm:
+  host: http://localhost:11434
+  model: llama3.2
+  max_tokens: 2048
+  temperature: 0.3
+
+# Настройки Google Sheets
+google_sheets:
+  spreadsheet_id: ""
+  credentials_file: config/credentials.json
+  worksheet_name: "Оценки"
+
+# Настройки лабораторных работ
+labs:
+  directory: config/labs
+  auto_download: true
+  git_repos: []
+  # Пример:
+  # - url: https://github.com/username/lab-tasks.git
+  #   branch: main
+  #   path: lab1
+
+# Критерии оценки по умолчанию
+grading:
+  max_score: 10
+  min_passing_score: 6
+  criteria:
+    - name: "Выполнение требований"
+      weight: 0.4
+    - name: "Качество кода"
+      weight: 0.3
+    - name: "Документация"
+      weight: 0.2
+    - name: "Тестирование"
+      weight: 0.1
