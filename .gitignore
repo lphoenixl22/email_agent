@@ -5,35 +5,28 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
-env/
 venv/
 .venv/
-.ENV
-.python-version
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-*.tmp
-
-# Environment
 .env
 .env.local
 .env.*
 
-# Dependencies
-requirements.txt.bak
-
-# Build artifacts
-build/
+# Build and distribution artifacts
 dist/
-*.egg
+build/
 *.egg-info/
-.eggs/
+
+# Testing
+.coverage
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
 ```

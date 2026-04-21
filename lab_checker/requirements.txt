@@ -1,14 +1,30 @@
-# Python dependencies
-imapclient==3.0.1
-pyzmail36==1.1.1
-python-dotenv==1.0.0
-ollama==0.1.7
-google-auth==2.23.4
-google-auth-oauthlib==1.1.0
-google-auth-httplib2==0.1.1
-google-api-python-client==2.108.0
+# Lab Checker для MikroTik RouterOS
+# Основные зависимости
+
+# Email и IMAP
+imap-tools==1.4.0
+
+# Работа с документами
 PyPDF2==3.0.1
 python-docx==1.1.0
-chardet==5.2.0
-gitpython==3.1.40
-pyyaml==6.0.1
+
+# OCR для скриншотов
+pytesseract==0.3.10
+Pillow==10.2.0
+
+# LLM через Ollama
+ollama==0.1.6
+
+# Google Sheets API (опционально)
+google-auth==2.25.2
+google-auth-oauthlib==1.2.0
+google-auth-httplib2==0.2.0
+gspread==5.12.3
+
+# Утилиты
+python-dotenv==1.0.0
+PyYAML==6.0.1
+requests==2.31.0
+
+# Git интеграция
+GitPython==3.1.40
