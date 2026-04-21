@@ -20,6 +20,7 @@ from parser import ReportParser
 from llm_analyzer import LLMAnalyzer
 from lab_manager import LabManager
 from google_sheets import GoogleSheetsClient, MockGoogleSheetsClient
+from plagiarism_detector import PlagiarismDetector
 
 # Настройка логирования
 logging.basicConfig(
@@ -50,6 +51,7 @@ class LabCheckerService:
         self.llm_analyzer = None
         self.lab_manager = LabManager()
         self.sheets_client = None
+        self.plagiarism_detector = PlagiarismDetector(similarity_threshold=0.85)
         
         self._init_components()
         
@@ -156,6 +158,30 @@ class LabCheckerService:
             validation = self.parser.validate_report(report_text, student_info['lab_number'])
             if not validation.get('valid'):
                 logger.warning(f"Отчет не прошел валидацию: {validation.get('issues')}")
+            
+            # Получение конфигурации MikroTik (если есть)
+            mikrotik_config = validation.get('mikrotik_config')
+            
+            # Добавление работы для проверки на плагиат
+            student_id = student_info.get('email') or student_info.get('student_name', 'unknown')
+            self.plagiarism_detector.add_submission(
+                student_id=student_id,
+                report_text=report_text,
+                mikrotik_config=mikrotik_config
+            )
+            
+            # Проверка на плагиат
+            plagiarism_check = self.plagiarism_detector.check_plagiarism(student_id)
+            if plagiarism_check.get('is_plagiarism'):
+                logger.warning(f"⚠️ Обнаружен возможный плагиат! Студент: {student_id}")
+                for match in plagiarism_check.get('matches', [])[:3]:
+                    logger.warning(f"  - Схожесть с {match['student_id']}: {match['similarity']*100:.1f}% ({match['type']})")
+                
+                # Добавляем информацию о плагиате в анализ
+                plagiarism_comment = f"\n\n⚠️ ВОЗМОЖЕН ПЛАГИАТ! Найдено совпадений: {len(plagiarism_check['matches'])}. " \
+                                   f"Максимальная схожесть: {plagiarism_check['similarity_score']*100:.1f}%"
+                # Сохраняем для передачи в LLM
+                student_info['plagiarism_warning'] = plagiarism_comment
             
             # Загрузка требований к лабораторной
             lab_requirements = self.lab_manager.load_lab_requirements(
