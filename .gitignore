@@ -5,28 +5,86 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+env/
 venv/
 .venv/
-.env
-.env.local
-.env.*
+.ENV
+.venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
+.pytest_cache/
+.hypothesis/
+.eggs/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+.lib/
+.ipython/
+.pyre/
+.mypy_cache/
 
-# Build and distribution artifacts
+# Distribution / packaging
+.Python
+env/
+venv/
+.venv/
+.ENV
+.venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/modules/
+.pytest_cache/
+.hypothesis/
+.eggs/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+.lib/
+.ipython/
+.pyre/
+.mypy_cache/
 dist/
 build/
 *.egg-info/
+.installed.cfg
+*.egg
 
-# Testing
-.coverage
-coverage/
-htmlcov/
-.pytest_cache/
-.mypy_cache/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
 
-# Logs
-*.log
-
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
+
+# Environment variables
+.env
+.env.local
+*.env*
 ```

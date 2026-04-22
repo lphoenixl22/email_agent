@@ -5,6 +5,13 @@ email:
   check_interval: 60  # интервал проверки в секундах
   mark_as_read: true
   download_attachments: true
+  send_response: true  # отправлять ли ответ студенту
+
+# Настройки SMTP для отправки писем
+smtp:
+  server: smtp.gmail.com
+  port: 587
+  use_tls: true
 
 # Настройки LLM
 llm:

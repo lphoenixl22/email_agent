@@ -6,7 +6,7 @@ import sys
 import time
 import signal
 import logging
-from typing import Optional
+from typing import Optional, Dict
 from pathlib import Path
 
 # Добавляем путь к модулям
@@ -21,6 +21,7 @@ from llm_analyzer import LLMAnalyzer
 from lab_manager import LabManager
 from google_sheets import GoogleSheetsClient, MockGoogleSheetsClient
 from plagiarism_detector import PlagiarismDetector
+from email_sender import EmailSender
 
 # Настройка логирования
 logging.basicConfig(
@@ -47,6 +48,7 @@ class LabCheckerService:
         
         # Инициализация компонентов
         self.email_client = None
+        self.email_sender = None
         self.parser = ReportParser()
         self.llm_analyzer = None
         self.lab_manager = LabManager()
@@ -90,9 +92,26 @@ class LabCheckerService:
                 username=imap_username,
                 password=imap_password
             )
-            logger.info("Почтовый клиент инициализирован")
+            logger.info("Почтовый клиент (IMAP) инициализирован")
         else:
             logger.warning("IMAP учетные данные не настроены")
+        
+        # Инициализация отправителя писем (SMTP)
+        smtp_server = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
+        smtp_port = int(os.getenv('SMTP_PORT', '587'))
+        smtp_username = os.getenv('SMTP_USERNAME', imap_username)
+        smtp_password = os.getenv('SMTP_PASSWORD', imap_password)
+        
+        if smtp_username and smtp_password:
+            self.email_sender = EmailSender(
+                smtp_server=smtp_server,
+                smtp_port=smtp_port,
+                username=smtp_username,
+                password=smtp_password
+            )
+            logger.info("Почтовый клиент (SMTP) инициализирован")
+        else:
+            logger.warning("SMTP учетные данные не настроены, отправка писем будет недоступна")
         
         # Инициализация LLM анализатора
         llm_host = os.getenv('OLLAMA_HOST', 'http://localhost:11434')
@@ -206,6 +225,10 @@ class LabCheckerService:
             if self.sheets_client:
                 self.sheets_client.append_grade(student_info, analysis_result)
             
+            # Отправка письма студенту с результатом проверки
+            if self.email_sender:
+                self._send_response_email(student_info, analysis_result)
+            
             # Пометка письма как прочитанного
             if self.email_client and self.config.get('email', {}).get('mark_as_read', True):
                 self.email_client.mark_as_read(email_data['id'])
@@ -215,6 +238,38 @@ class LabCheckerService:
         except Exception as e:
             logger.error(f"Ошибка обработки письма: {e}", exc_info=True)
             return False
+    
+    def _send_response_email(self, student_info: Dict, analysis_result: Dict):
+        """Отправка письма студенту с результатом проверки"""
+        try:
+            student_email = student_info.get('email')
+            if not student_email:
+                logger.warning("Email студента не найден, отправка письма невозможна")
+                return
+            
+            # Подключение к SMTP серверу если еще не подключено
+            if not self.email_sender.server:
+                if not self.email_sender.connect():
+                    logger.warning("Не удалось подключиться к SMTP серверу для отправки письма")
+                    return
+            
+            success = self.email_sender.send_grade_email(
+                student_email=student_email,
+                student_name=student_info.get('student_name', 'Студент'),
+                lab_number=student_info.get('lab_number', 0),
+                score=analysis_result.get('score', 0),
+                max_score=analysis_result.get('max_score', 10),
+                comment=analysis_result.get('comment', ''),
+                criteria_scores=analysis_result.get('criteria_scores')
+            )
+            
+            if success:
+                logger.info(f"Письмо с результатом отправлено студенту {student_email}")
+            else:
+                logger.error(f"Не удалось отправить письмо студенту {student_email}")
+                
+        except Exception as e:
+            logger.error(f"Ошибка при отправке письма студенту: {e}", exc_info=True)
     
     def check_emails(self):
         """Проверка новых писем"""
@@ -288,6 +343,8 @@ class LabCheckerService:
         logger.info("Остановка сервиса...")
         if self.email_client:
             self.email_client.disconnect()
+        if self.email_sender:
+            self.email_sender.disconnect()
         
         logger.info("Сервис остановлен")
 
